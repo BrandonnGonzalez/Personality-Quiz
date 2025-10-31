@@ -84,11 +84,28 @@ function App() {
 
   return (
     <div>
-      <UserContext.Provider value={{ name: userName, setName: handleUserFormSubmit }}>
-
+      <UserContext.Provider value={{ name: userName, setName: setUserName }}>
+        <Header />
+        <Routes>
+          <Route path="/" element={<UserForm onSubmit={handleUserFormSubmit} />} />
+          <Route
+            path="/quiz"
+            element={
+              currentQuestionIndex < questions.length ? (
+                <Question
+                  question={questions[currentQuestionIndex].question}
+                  options={questions[currentQuestionIndex].options}
+                  onAnswer={handleAnswer}
+                />
+              ) : (
+                <Results element={element} artwork={artwork} />
+              )
+            }
+          />
+        </Routes>
+        <Results element={element} artwork={artwork} />
       </UserContext.Provider>
     </div>
-    
   );
 }
 
