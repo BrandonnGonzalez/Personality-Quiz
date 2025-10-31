@@ -7,7 +7,8 @@ function Header() {
       <h1>Which Element are you?</h1>
     </header>
     <h2>(Based on completely random things)</h2>
-    <Link to="/home">Home</Link>
+    <Link to="/home">Home</Link> 
+    <br /> 
     <Link to="/quiz">Quiz</Link>
     </div>
   );
