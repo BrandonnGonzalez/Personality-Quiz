@@ -1,5 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
+import Header from './components/Header'
+import Question from './components/Question'
+import Results from './components/Results'
+import UserForm from './components/UserForm'
+import { UserContext } from './components/UserContext'
 
 function App() {
 
@@ -52,60 +58,65 @@ function App() {
   };
 
   // API for fetching artwork image from the MET Museum API.
-  useEffect(() => { 
-
-    const fetchArtImage = async () => {
-      try {
-        const response = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects
-`);
-        const data = await response.json();
-        if(!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+  async function fetchArtwork(keyword) {
+    try {
+      const response = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/search?q=${keyword}`);
+      const data = await response.json();
+      if(data.objectIDs && data.objectIDs.length > 0) {
+        const objectResponse = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${data.objectIDs[0]}`);
+        const objectData = await objectResponse.json();
+        if(objectResponse.ok) {
+          setArtwork({
+            title: objectData.title,
+            primaryImage: objectData.primaryImage || objectData.primaryImageSmall,
+            artistDisplayName: objectData.artistDisplayName || 'Unknown',
+            objectDate: objectData.objectDate || 'Unknown'
+          });
         }
-        setArtworkImage(data.primaryImageSmall);
-      } catch (error) {
-        console.error('Error fetching artwork image:', error);
       }
-      }
-      fetchArtImage();
-  }, []); // Empty dependency array ensures it runs only once on mount
+    } catch (error) {
+      console.error('Error fetching artwork:', error);
+    }
+  }
+  
   // useEffect to determine the element and fetch the artwork image based on the answers
   useEffect(
     function () {
-      if (currentQuestionIndex === questions.length) {
+      if (currentQuestionIndex === questions.length && answers.length > 0) {
         const selectedElement = determineElement(answers);
         setElement(selectedElement);
         fetchArtwork(keywords[selectedElement]);
       }
     },
-    [currentQuestionIndex]
+    [currentQuestionIndex, answers]
   );
 
 
   return (
-    <div>
-      <UserContext.Provider value={{ name: userName, setName: setUserName }}>
-        <Header />
-        <Routes>
-          <Route path="/" element={<UserForm onSubmit={handleUserFormSubmit} />} />
-          <Route
-            path="/quiz"
-            element={
-              currentQuestionIndex < questions.length ? (
-                <Question
-                  question={questions[currentQuestionIndex].question}
-                  options={questions[currentQuestionIndex].options}
-                  onAnswer={handleAnswer}
-                />
-              ) : (
-                <Results element={element} artwork={artwork} />
-              )
-            }
-          />
-        </Routes>
-        <Results element={element} artwork={artwork} />
-      </UserContext.Provider>
-    </div>
+    <BrowserRouter>
+      <div>
+        <UserContext.Provider value={{ name: userName, setName: setUserName }}>
+          <Header />
+          <Routes>
+            <Route path="/" element={<UserForm onSubmit={handleUserFormSubmit} />} />
+            <Route
+              path="/quiz"
+              element={
+                currentQuestionIndex < questions.length ? (
+                  <Question
+                    question={questions[currentQuestionIndex].question}
+                    options={questions[currentQuestionIndex].options}
+                    onAnswer={handleAnswer}
+                  />
+                ) : (
+                  <Results element={element} artwork={artwork} />
+                )
+              }
+            />
+          </Routes>
+        </UserContext.Provider>
+      </div>
+    </BrowserRouter>
   );
 }
 

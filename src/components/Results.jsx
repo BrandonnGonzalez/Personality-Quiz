@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import { UserContext } from './UserContext';
 
 export default function Results({ element, artwork }) {
   // reference the context for the "name".
+  const { name } = useContext(UserContext);
 
   return (
     <div>
